@@ -1,15 +1,32 @@
 from pydantic import BaseModel
 import datetime
 from typing import List, Optional
+from datetime import datetime, timezone
+from pydantic import BaseModel, Field
+from typing import Optional, List
+from enum import Enum
+
+class Coordinates(BaseModel):
+    latitude: float
+    longitude: float
 
 class Location (BaseModel):
-    city = str
-    town = str
-    country = str 
-    postal_code = int
-    coordinates = str
-    created_at = datetime.time
-    updated_at = datetime.time
+    city: str
+    town: Optional[str] = None 
+    country: str 
+    postal_code: Optional[int] = None 
+    coordinates: Optional[Coordinates] = None 
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class UpdateLocation(BaseModel):
+    city: Optional[str] = None
+    town: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[int] = None
+    coordinates: Optional[Coordinates] = None
+   
+
 
 class Temperature(BaseModel):
     day: float
