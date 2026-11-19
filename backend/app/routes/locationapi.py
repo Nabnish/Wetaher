@@ -6,13 +6,14 @@ import httpx
 
 
 
-async def geolocation_api(city="",zip_country="",lat=None,lon=None):
+async def geolocation_api(name="",zip_country="",lat=None,lon=None):
+
     api_url = "http://api.openweathermap.org/geo/1.0"
    
 
-    if city:
+    if name:
         params = {
-                "q" : city,
+                "q" : name,
                 "appid": os.getenv("WEATHER_API_KEY")
             }
         api_url+="/direct"

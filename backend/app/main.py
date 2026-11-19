@@ -50,4 +50,4 @@ def health_check():
 
 app.include_router(location.router)
 app.include_router(current.router)
-app.include_router(locationapi.router)
+

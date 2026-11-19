@@ -6,25 +6,26 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from enum import Enum
 
-class Coordinates(BaseModel):
-    latitude: float
-    longitude: float
-
+class Coordinates (BaseModel):
+    lat: float
+    lon:    float
 class Location (BaseModel):
-    city: str
+    name: Optional[str] = None
     state: Optional[str] = None 
-    country: str 
-    postal_code: Optional[int] = None 
-    coordinates: Optional[Coordinates] = None 
+    country: Optional[str] = None 
+    coordinates : Optional[Coordinates] =  None
+    zip: Optional[str] = None 
+    
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UpdateLocation(BaseModel):
-    city: Optional[str] = None
-    town: Optional[str] = None
+    name: Optional[str] = None
+    state: Optional[str] = None
     country: Optional[str] = None
-    postal_code: Optional[int] = None
-    coordinates: Optional[Coordinates] = None
+    zip: Optional[str] = None
+    coordinates : Optional[Coordinates] =  None
+
    
 
 

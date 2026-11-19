@@ -4,15 +4,33 @@ from bson import ObjectId
 from pydantic import BaseModel,Field
 from typing import List
 from ..services import models
+import json
+from .locationapi import geolocation_api
 
 router = APIRouter(prefix="/api/v1/location",tags=["location"])
 
 
 
 @router.post("/insert",response_model=models.Location)
-async def insert_location_user(location: models.Location, request: Request):
-  
-    result = await request.app.mongodb["location"].insert_one(location.dict())
+async def insert_location_user(    request: Request,location: models.Location):
+
+    response = await geolocation_api(
+        name=location.name,
+        zip_country=location.zip,
+        lat=location.coordinates.lat,
+        lon=location.coordinates.lon
+    )
+
+    
+    if "local_names" in response:
+        response[0].pop("local_names", None)
+    if isinstance(response, list):     
+        response = response[0]
+    response["coordinates"] = {"lat": response["lat"],"lon" : response["lon"]}
+    response.pop("lat",None)
+    response.pop("lon",None)
+
+    result = await request.app.mongodb["location"].insert_one(response)
     inserted_location = await request.app.mongodb["location"].find_one({"_id": result.inserted_id})
     
     print("Inserted ID:", result.inserted_id)
