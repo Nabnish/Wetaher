@@ -1,66 +1,48 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-from bson import ObjectId
-from pydantic import BaseModel,Field
-from typing import List
-from ..services import models
+from fastapi import HTTPException
+
 import os
 import httpx
 
-router = APIRouter(prefix="/api/v1/locationapi",tags=["locationapi"])
 
-@router.get("/city/{city}")
-async def getcords_city(city :str, request : Request):
-    api_url = "http://api.openweathermap.org/geo/1.0/direct"
-    
-    params ={
-        "q" : city,
-        "appid" : os.getenv("WEATHER_API_KEY")
 
-        
-    }
-  
-    async with httpx.AsyncClient() as client:
+
+async def geolocation_api(city="",zip_country="",lat=None,lon=None):
+    api_url = "http://api.openweathermap.org/geo/1.0"
+   
+
+    if city:
+        params = {
+                "q" : city,
+                "appid": os.getenv("WEATHER_API_KEY")
+            }
+        api_url+="/direct"
+    elif lat is not None and lon is not None:
+        params = {
+                "lat" : lat,
+                "lon" : lon,
+                "appid": os.getenv("WEATHER_API_KEY")
+            }
+        api_url += "/reverse"
+
+    elif zip_country:
         try:
-            response = await client.get(
-                api_url,
-                params=params,
-                timeout=10.0
-            )
-            response.raise_for_status() 
-            
-
-            return response.json()
-            
-        except httpx.HTTPStatusError as exc:
+            zip_value, country_code = zip_country.split(",", 1)
+            params = {
+                    "zip": f"{zip_value},{country_code}",
+                    "appid": os.getenv("WEATHER_API_KEY")
+                }
+            api_url += "/zip"
+        except ValueError:
             raise HTTPException(
-                status_code=exc.response.status_code,
-                detail=f"External API error: {exc.response.text}"
-            )
-        except httpx.RequestError as exc:
-            raise HTTPException(
-                status_code=503,
-                detail=f"Failed to connect to external API: {str(exc)}"
+                status_code=400,
+                detail="ZIP must be provided as ZIP,country_code"
             )
 
-
-@router.get("/zip/{zip_country}")
-async def getcords_zip(zip_country: str, request: Request):
-    try:
-        zip_value, country_code = zip_country.split(",", 1)
-    except (ValueError, AttributeError):
+    else:
         raise HTTPException(
             status_code=400,
-            detail="ZIP must be provided as /zip/{zip},{country_code}",
+            detail="Provide city, lat/lon, or ZIP/country"
         )
-
-    api_url = "http://api.openweathermap.org/geo/1.0/zip"
-    
-    params ={
-        "zip": f"{zip_value},{country_code}",
-        "appid" : os.getenv("WEATHER_API_KEY")
-
-        
-    }
   
     async with httpx.AsyncClient() as client:
         try:
@@ -84,51 +66,3 @@ async def getcords_zip(zip_country: str, request: Request):
                 status_code=503,
                 detail=f"Failed to connect to external API: {str(exc)}"
             )
-
-
-@router.get("/cords/{lat}/{lon}")
-async def getcords_zip(lat: float,lon: float, request: Request):
-    
-    if lat is None or lon is None:
-        raise HTTPException(
-            status_code=400,
-            detail="lat/lon should be a valid float",
-        )
-    
-        
-
-    api_url = "http://api.openweathermap.org/geo/1.0/reverse"
-
-    
-    params ={
-        "lat": lat,
-        "lon": lon,
-        "appid" : os.getenv("WEATHER_API_KEY")
-
-        
-    }
-  
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(
-                api_url,
-                params=params,
-                timeout=10.0
-            )
-            response.raise_for_status() 
-            
-
-            return response.json()
-            
-        except httpx.HTTPStatusError as exc:
-            raise HTTPException(
-                status_code=exc.response.status_code,
-                detail=f"External API error: {exc.response.text}"
-            )
-        except httpx.RequestError as exc:
-            raise HTTPException(
-                status_code=503,
-                detail=f"Failed to connect to external API: {str(exc)}"
-            )
-
-
