@@ -5,43 +5,27 @@ from typing import List
 from ..services import models
 import os
 import httpx
+from .locationapi import getweather_api
+from bson import ObjectId
 
 router = APIRouter(prefix="/api/v1/current",tags=["current"])
 
 
 
-@router.get("/today")
-async def todays_forecast(request : Request):
-    api_url = "https://api.openweathermap.org/data/2.5/weather"
-    location = await request.app.mongodb["location"].find_one({})
+@router.get("/today/{city}")
+async def todays_forecast(request : Request, city: str):
 
-    params ={
-        "lat": location["coordinates"]["latitude"],
-        "lon": location["coordinates"]["longitude"],
-        "appid" : os.getenv("WEATHER_API_KEY")
+    response = await getweather_api(request,city)
+    
+    result  = await request.app.mongodb["CurrentWeather"].insert_one(response)
+    inserted_forecadst = await request.app.mongodb["CurrentWeather"].find_one({"_id": result.inserted_id})
+    print("Inserted ID:", result.inserted_id)
+    
+    inserted_forecadst["_id"] = str(inserted_forecadst["_id"])
+    count = await request.app.mongodb["CurrentWeather"].count_documents({})
+    print("Documents after insert:", count)
+    inserted_forecadst.pop("_id", None)
+    return inserted_forecadst        
+    
         
-    }
-  
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(
-                api_url,
-                params=params,
-                timeout=10.0
-            )
-            response.raise_for_status() 
-            
-
-            return response.json()
-            
-        except httpx.HTTPStatusError as exc:
-            raise HTTPException(
-                status_code=exc.response.status_code,
-                detail=f"External API error: {exc.response.text}"
-            )
-        except httpx.RequestError as exc:
-            raise HTTPException(
-                status_code=503,
-                detail=f"Failed to connect to external API: {str(exc)}"
-            )
    
