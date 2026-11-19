@@ -53,7 +53,9 @@ async def geolocation_api(name="",zip_country="",lat=None,lon=None):
                 timeout=10.0
             )
             response.raise_for_status() 
-            
+            print("API URL:", api_url)
+            print("STATUS:", response.status_code)
+            print("API RESPONSE:", response.json())
 
             return response.json()
             

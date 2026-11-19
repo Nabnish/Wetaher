@@ -13,15 +13,24 @@ router = APIRouter(prefix="/api/v1/location",tags=["location"])
 
 @router.post("/insert",response_model=models.Location)
 async def insert_location_user(    request: Request,location: models.Location):
-
-    response = await geolocation_api(
-        name=location.name,
-        zip_country=location.zip,
-        lat=location.coordinates.lat,
-        lon=location.coordinates.lon
+    if location.coordinates is None:
+         response = await geolocation_api(
+                name=location.name,
+                zip_country=location.zip
+        )
+    else:
+        response = await geolocation_api(
+            name=location.name,
+            zip_country=location.zip,
+            lat=location.coordinates.lat,
+            lon=location.coordinates.lon
     )
 
-    
+    if not response:
+        raise HTTPException(
+            status_code=404,
+            detail="Location not found"
+        )
     if "local_names" in response:
         response[0].pop("local_names", None)
     if isinstance(response, list):     
@@ -40,15 +49,22 @@ async def insert_location_user(    request: Request,location: models.Location):
     return inserted_location
 
 @router.get("/display",response_model=list[models.Location])
-async def display_location(request : Request):
+async def display_locations(request : Request):
     result = await request.app.mongodb["location"].find().to_list(None)
     print(await request.app.mongodb["location"].count_documents({}))
+    if result is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result
+
+@router.get("/display/{city}",response_model=models.Location)
+async def display_city(request: Request, city: str):
+    result = await request.app.mongodb["location"].find_one({"name": city.capitalize()})
     return result
 
 
-@router.delete("/delete",response_model=dict)
-async def delete_location(request: Request):
-    result =  await request.app.mongodb["location"].delete_one({})
+@router.delete("/delete/{city}",response_model=dict)
+async def delete_location(request: Request, city: str):
+    result =  await request.app.mongodb["location"].delete_one({"name":city.capitalize()})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="not found")
     return {"message": "deleted successfully"}
