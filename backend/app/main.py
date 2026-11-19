@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import os
-from .routes import location, current
+from .routes import location, current , locationapi
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -50,3 +50,4 @@ def health_check():
 
 app.include_router(location.router)
 app.include_router(current.router)
+app.include_router(locationapi.router)

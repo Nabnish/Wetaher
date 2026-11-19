@@ -18,6 +18,7 @@ async def todays_forecast(request : Request):
     params ={
         "lat": location["coordinates"]["latitude"],
         "lon": location["coordinates"]["longitude"],
+        "appid" : os.getenv("WEATHER_API_KEY")
         
     }
   

@@ -8,6 +8,7 @@ from ..services import models
 router = APIRouter(prefix="/api/v1/location",tags=["location"])
 
 
+
 @router.post("/insert",response_model=models.Location)
 async def insert_location_user(location: models.Location, request: Request):
   
@@ -25,6 +26,7 @@ async def display_location(request : Request):
     result = await request.app.mongodb["location"].find().to_list(None)
     print(await request.app.mongodb["location"].count_documents({}))
     return result
+
 
 @router.delete("/delete",response_model=dict)
 async def delete_location(request: Request):

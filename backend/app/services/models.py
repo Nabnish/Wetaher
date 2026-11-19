@@ -12,7 +12,7 @@ class Coordinates(BaseModel):
 
 class Location (BaseModel):
     city: str
-    town: Optional[str] = None 
+    state: Optional[str] = None 
     country: str 
     postal_code: Optional[int] = None 
     coordinates: Optional[Coordinates] = None 
