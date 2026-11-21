@@ -77,3 +77,43 @@ class CurrentWeather(BaseModel):
     id: int
     name: str
     cod: int
+
+
+class ForecastMain(BaseModel):
+    temp: float
+    feels_like: float
+    temp_min: float
+    temp_max: float
+    pressure: int
+    humidity: int
+
+
+class ForecastSys(BaseModel):
+    pod: str
+
+
+class ForecastItem(BaseModel):
+    dt: int
+    dt_txt: str
+    main: ForecastMain
+    weather: List[Weather]
+    clouds: Clouds
+    wind: Wind
+    visibility: int
+    pop: float
+    sys: ForecastSys
+
+
+class ForecastCity(BaseModel):
+    name: str
+    coord: Coordinates
+    country: str
+    timezone: int
+
+
+class FiveDayForecast(BaseModel):
+    cod: str
+    message: int
+    cnt: int
+    list: List[ForecastItem]
+    city: ForecastCity

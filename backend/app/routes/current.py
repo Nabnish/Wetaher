@@ -29,7 +29,7 @@ async def todays_forecast(request : Request, city: str):
 
 @router.delete("/today/delete/{city}",response_model=dict)
 async def delete_forecast(request: Request, city: str):
-    result =  await request.app.mongodb["CurrentWeather"].delete_one({"name":city.title()})
+    result =  await request.app.mongodb["CurrentWeather"].delete_many({"name":city.title()})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="not found")
     return {"message": "deleted successfully"}
