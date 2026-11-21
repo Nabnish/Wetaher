@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import os
-from .routes import location, current , locationapi
+from .routes import api, location, current
 
 from motor.motor_asyncio import AsyncIOMotorClient
 

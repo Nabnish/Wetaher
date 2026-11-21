@@ -70,7 +70,7 @@ async def geolocation_api(name="",zip_country="",lat=None,lon=None):
 
 async def getweather_api(request,city):
         api_url = "https://api.openweathermap.org/data/2.5/weather"
-        location = await request.app.mongodb["location"].find_one({"name": city.capitalize()})
+        location = await request.app.mongodb["location"].find_one({"name": city.title()})
      
     
         params ={

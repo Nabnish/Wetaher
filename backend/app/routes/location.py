@@ -5,7 +5,9 @@ from pydantic import BaseModel,Field
 from typing import List
 from ..services import models
 import json
-from .locationapi import geolocation_api
+from .api import geolocation_api
+from pymongo.errors import DuplicateKeyError
+
 
 router = APIRouter(prefix="/api/v1/location",tags=["location"])
 
@@ -38,15 +40,18 @@ async def insert_location_user(    request: Request,location: models.Location):
     response["coordinates"] = {"lat": response["lat"],"lon" : response["lon"]}
     response.pop("lat",None)
     response.pop("lon",None)
+    try:
 
-    result = await request.app.mongodb["location"].insert_one(response)
-    inserted_location = await request.app.mongodb["location"].find_one({"_id": result.inserted_id})
+        result = await request.app.mongodb["location"].insert_one(response)
+        inserted_location = await request.app.mongodb["location"].find_one({"_id": result.inserted_id})
+        count = await request.app.mongodb["location"].count_documents({})
+        print("Documents after insert:", count)
+        return inserted_location
+    except DuplicateKeyError:
+        raise HTTPException(status_code=409, detail="Location with these coordinates already exists")
     
-    print("Inserted ID:", result.inserted_id)
 
-    count = await request.app.mongodb["location"].count_documents({})
-    print("Documents after insert:", count)
-    return inserted_location
+    
 
 @router.get("/display",response_model=list[models.Location])
 async def display_locations(request : Request):
@@ -58,13 +63,13 @@ async def display_locations(request : Request):
 
 @router.get("/display/{city}",response_model=models.Location)
 async def display_city(request: Request, city: str):
-    result = await request.app.mongodb["location"].find_one({"name": city.capitalize()})
+    result = await request.app.mongodb["location"].find_one({"name": city.title()})
     return result
 
 
 @router.delete("/delete/{city}",response_model=dict)
 async def delete_location(request: Request, city: str):
-    result =  await request.app.mongodb["location"].delete_one({"name":city.capitalize()})
+    result =  await request.app.mongodb["location"].delete_one({"name":city.title()})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="not found")
     return {"message": "deleted successfully"}
