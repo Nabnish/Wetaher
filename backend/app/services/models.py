@@ -1,7 +1,7 @@
-from pydantic import BaseModel
-import datetime
+
+
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from enum import Enum
@@ -117,3 +117,23 @@ class FiveDayForecast(BaseModel):
     cnt: int
     list: List[ForecastItem]
     city: ForecastCity
+
+class TemperatureRequest(BaseModel):
+    name: str
+    start_date: date
+    end_date: date
+    data_type: str 
+
+class TemperatureReading(BaseModel):
+    time: datetime
+    temperature: float
+
+
+class TemperatureRecord(BaseModel):
+    coordinates: Coordinates
+    start_date: date
+    end_date: date
+    temperatures: List[TemperatureReading]
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )

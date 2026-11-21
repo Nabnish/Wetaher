@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import os
-from .routes import api, location, current , fiveday
+from .routes import api, location, current , fiveday , history
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -17,10 +17,6 @@ async def lifespan(app: FastAPI):
     await shutdown_db_client(app)
 
 
-async def startup_db_client(app):
-    app.mongodb_client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
-    app.mongodb = app.mongodb_client.get_database("weather")
-    print("MongoDB connected.")
 
 async def shutdown_db_client(app):
     app.mongodb_client.close()
@@ -51,4 +47,5 @@ def health_check():
 app.include_router(location.router)
 app.include_router(current.router)
 app.include_router(fiveday.router)
+app.include_router(history.router)
 

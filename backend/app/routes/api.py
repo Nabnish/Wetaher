@@ -137,3 +137,41 @@ async def getweather5days_api(request,city):
                     status_code=503,
                     detail=f"Failed to connect to external API: {str(exc)}"
                 )
+
+async def getweatherhistory_api(request,city,start,end):
+        api_url = "https://archive-api.open-meteo.com/v1/era5"
+        location = await request.app.mongodb["location"].find_one({"name": city.title()})
+     
+    
+        params ={
+            "latitude": location["coordinates"]["lat"],
+            "longitude": location["coordinates"]["lon"],
+            "start_date": start,
+            "end_date": end,
+            "hourly": "temperature_2m"
+         
+            
+        }
+      
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    api_url,
+                    params=params,
+                    timeout=10.0
+                )
+                response.raise_for_status() 
+                
+    
+                return response.json()
+                
+            except httpx.HTTPStatusError as exc:
+                raise HTTPException(
+                    status_code=exc.response.status_code,
+                    detail=f"External API error: {exc.response.text}"
+                )
+            except httpx.RequestError as exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Failed to connect to external API: {str(exc)}"
+                )
