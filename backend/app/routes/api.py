@@ -76,6 +76,7 @@ async def getweather_api(request,city):
         params ={
             "lat": location["coordinates"]["lat"],
             "lon": location["coordinates"]["lon"],
+            "units": "metric",
             "appid" : os.getenv("WEATHER_API_KEY")
             
         }
