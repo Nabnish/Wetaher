@@ -60,7 +60,7 @@ async def create_current_weather(payload: CurrentWeatherCreate, request: Request
     return doc
 
 
-@router.get("/today/display",response_model=models.CurrentWeather)
+@router.get("/today/display",response_model=list[models.CurrentWeather])
 async def list_current_weather(request: Request):
     docs = await request.app.mongodb["CurrentWeather"].find().to_list(None)
     for d in docs:
@@ -69,7 +69,7 @@ async def list_current_weather(request: Request):
     return docs
 
 
-@router.get("/today/{weather_id}",response_model=models.CurrentWeather)
+@router.get("/today/display/{weather_id}",response_model=models.CurrentWeather)
 async def get_current_weather(weather_id: str, request: Request):
     try:
         oid = ObjectId(weather_id)
@@ -84,9 +84,14 @@ async def get_current_weather(weather_id: str, request: Request):
     doc["location_id"] = str(doc["location_id"])
     return doc   
 
-@router.delete("/today/delete/{city}",response_model=dict)
-async def delete_forecast(request: Request, city: str):
-    result =  await request.app.mongodb["CurrentWeather"].delete_many({"name":city.title()})
+@router.delete("/today/delete/{weather_id}",response_model=dict)
+async def delete_forecast(request: Request, weather_id: str):
+    try:
+        oid = ObjectId(weather_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid id")
+
+    result =  await request.app.mongodb["CurrentWeather"].delete_many({"_id":oid})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="not found")
     return {"message": "deleted successfully"}

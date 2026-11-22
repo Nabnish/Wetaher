@@ -6,117 +6,83 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from enum import Enum
 
-class Coordinates (BaseModel):
+class Coordinates(BaseModel):
     lat: float
     lon:    float
-class Location (BaseModel):
+class Location(BaseModel):
+    id: Optional[str] = None
     name: Optional[str] = None
-    state: Optional[str] = None 
-    country: Optional[str] = None 
-    coordinates : Optional[Coordinates] =  None
-    zip: Optional[str] = None 
-    
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    state: Optional[str] = None
+    country: Optional[str] = None
+    coordinates: Optional[Coordinates] = None
+    zip: Optional[str] = None
+
 
 class UpdateLocation(BaseModel):
     name: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = None
     zip: Optional[str] = None
-    coordinates : Optional[Coordinates] =  None
+    coordinates: Optional[Coordinates] = None
 
 
-class Weather(BaseModel):
-    id: int
-    main: str
-    description: str
-    icon: str
+class WeatherCoordinates(BaseModel):
+    lat: float
+    lon: float
 
 
-class MainWeather(BaseModel):
-    temp: float
-    feels_like: float
-    temp_min: float
-    temp_max: float
-    pressure: int
-    humidity: int
-    sea_level: Optional[int] = None
-    grnd_level: Optional[int] = None
-
-
-class Wind(BaseModel):
-    speed: float
-    deg: int
-    gust: Optional[float] = None
-
-
-class Clouds(BaseModel):
-    all: int
-
-
-class Sys(BaseModel):
-    type: Optional[int] = None
-    id: Optional[int] = None
-    country: str
-    sunrise: int
-    sunset: int
+class WeatherLocation(BaseModel):
+    name: str
+    country: Optional[str] = None
+    coordinates: WeatherCoordinates
 
 
 class CurrentWeather(BaseModel):
-    coord: Coordinates
-    weather: List[Weather]
-    base: str
-    main: MainWeather
-    visibility: int
-    wind: Wind
-    clouds: Clouds
-    dt: int
-    sys: Sys
-    timezone: int
-    id: int
+    location_id: str
+    location: WeatherLocation
+    observed_at: int
+    temperature_c: float
+    feels_like_c: float
+    humidity: int
+    condition: str
+    wind_speed: float
+    created_at: datetime
+
+class ForecastLocationCoordinates(BaseModel):
+    lat: float
+    lon: float
+
+
+class ForecastLocation(BaseModel):
     name: str
-    cod: int
+    country: Optional[str] = None
+    coordinates: ForecastLocationCoordinates
 
 
-class ForecastMain(BaseModel):
-    temp: float
-    feels_like: float
+class ForecastEntry(BaseModel):
+    observed_at: int
+    forecast_at: str
+    temperature_c: float
+    feels_like_c: float
     temp_min: float
     temp_max: float
     pressure: int
     humidity: int
-
-
-class ForecastSys(BaseModel):
-    pod: str
-
-
-class ForecastItem(BaseModel):
-    dt: int
-    dt_txt: str
-    main: ForecastMain
-    weather: List[Weather]
-    clouds: Clouds
-    wind: Wind
+    condition: str
+    weather_main: str
+   
+    cloudiness: int
+    wind_speed: float
+    wind_degree: int
+    probability_of_precipitation: float
     visibility: int
-    pop: float
-    sys: ForecastSys
-
-
-class ForecastCity(BaseModel):
-    name: str
-    coord: Coordinates
-    country: str
-    timezone: int
 
 
 class FiveDayForecast(BaseModel):
-    cod: str
-    message: int
-    cnt: int
-    list: List[ForecastItem]
-    city: ForecastCity
+    location_id: str
+    location: ForecastLocation
+    forecast: List[ForecastEntry]
+    created_at: datetime
 
 class TemperatureRequest(BaseModel):
     name: str
