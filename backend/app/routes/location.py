@@ -58,12 +58,14 @@ async def display_locations(request : Request):
     result = await request.app.mongodb["location"].find().to_list(None)
     print(await request.app.mongodb["location"].count_documents({}))
     if result is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Location not found")
     return result
 
 @router.get("/display/{city}",response_model=models.Location)
 async def display_city(request: Request, city: str):
     result = await request.app.mongodb["location"].find_one({"name": city.title()})
+    if result is None:
+        raise HTTPException(status_code=404, detail="Location not found")
     return result
 
 
