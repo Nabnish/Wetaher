@@ -7,67 +7,109 @@ import os
 import httpx
 from .api import getweatherhistory_api
 from bson import ObjectId
-from datetime import datetime , date
+from datetime import datetime , date , timezone
+from bson import ObjectId
+from bson.errors import InvalidId
 
 router = APIRouter(prefix="/api/v1/history",tags=["history"])
 
+class HistoryCreate(BaseModel):
+    location_id: str
+    start: date
+    end: date
 
-
-@router.get("/display/{city}/{start}/{end}",response_model=models.TemperatureRecord)
-async def history_forecast(request : Request, city: str, start : date, end: date):
-    if start>end :
-        raise HTTPException(status_code=400,detail="dates are not valid")
-    await request.app.mongodb["TemperatureRequest"].insert_one({"name":city.title(),"start_date":start.isoformat(),"end_date":end.isoformat(),"data_type":"history"})
-
-    response = await getweatherhistory_api(request,city,start,end)
+   
+ 
+@router.post("/insert", status_code=201, response_model=models.TemperatureRecord)
+async def create_current_weather(payload: HistoryCreate, request: Request):
+    try:
+        location_oid = ObjectId(payload.location_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid location id")
+    if payload.start>payload.end :
+        raise HTTPException(status_code=400,detail="start_date must be before end_date")
+    if (payload.start-payload.end).days >= 366:
+        raise HTTPException(status_code=400,detail="Range cannot exceed 365 days")
+    if payload.end>date.today():
+        raise HTTPException(status_code=400,detail="only covers past dates")
     
-    
-    temperatures = [
-    {
-        "time": datetime.fromisoformat(time),
-        "temperature": temp
-    }
-    for time, temp in zip(
-        response["hourly"]["time"],
-        response["hourly"]["temperature_2m"]
-    )
-]
+    location = await request.app.mongodb["location"].find_one({"_id": location_oid})
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
 
-    record = {
-    "coordinates": {
-        "lat": response["latitude"],
-        "lon": response["longitude"]
+    raw = await getweatherhistory_api(request, location["name"], payload.start, payload.end)
+
+    hourly = raw.get("hourly") or {}
+
+    times = hourly.get("time") or []
+    temperatures = hourly.get("temperature_2m") or []
+
+    if not times:
+        raise HTTPException(
+            status_code=400,
+            detail="No historical data available"
+        )
+
+    readings = [
+        {"time": t, "temperature": temp}
+        for t, temp in zip(times, temperatures)
+    ]
+
+    doc = {
+    "location_id": location_oid,
+    "location": {
+        "name": location.get("name"),
+        "country": location.get("country"),
+        "coordinates": {
+            "lat": location["coordinates"]["lat"],
+            "lon": location["coordinates"]["lon"]
+        },
     },
-    "start_date": start.isoformat(),
-    "end_date": end.isoformat(),
-    "temperatures": temperatures,
-    "created_at": datetime.now()
-}
+    "start_date": payload.start.isoformat(),
+    "end_date": payload.end.isoformat(),
+    "readings": readings,
+    "created_at": datetime.now(timezone.utc),
+    }    
 
-    result = await request.app.mongodb["TemperatureRecord"].insert_one(record)
-    inserted_forecadst = await request.app.mongodb["TemperatureRecord"].find_one({"_id": result.inserted_id})
+
+    result = await request.app.mongodb["TemperatureRecord"].insert_one(doc)
+    doc["_id"] = str(result.inserted_id)
+    doc["location_id"] = str(location_oid)
+    return doc
+
+
+@router.get("/display",response_model=list[models.TemperatureRecord])
+async def list_current_weather(request: Request):
+    docs = await request.app.mongodb["TemperatureRecord"].find().to_list(None)
+    for d in docs:
+        d["_id"] = str(d["_id"])
+        d["location_id"] = str(d["location_id"])
+    return docs
+
+
+@router.get("/display/{weather_id}",response_model=models.TemperatureRecord)
+async def get_current_weather(weather_id: str, request: Request):
+    try:
+        oid = ObjectId(weather_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid id")
+
+    doc = await request.app.mongodb["TemperatureRecord"].find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    doc["_id"] = str(doc["_id"])
+    doc["location_id"] = str(doc["location_id"])
+    return doc   
+
+@router.delete("/delete/{weather_id}",response_model=dict)
+async def delete_forecast(request: Request, weather_id : str):
+    try:
+        oid = ObjectId(weather_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid id")
     
-    inserted_forecadst["_id"] = str(inserted_forecadst["_id"])
-    count = await request.app.mongodb["TemperatureRecord"].count_documents({})
-    inserted_forecadst.pop("_id", None)
-    return inserted_forecadst        
-
-@router.delete("/delete/{city}",response_model=dict)
-async def delete_forecast(request: Request, city: str):
-    result =  await request.app.mongodb["TemperatureRecord"].delete_many({"name":city.title()})
+    result =  await request.app.mongodb["TemperatureRecord"].delete_many({"_id":oid})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="not found")
     return {"message": "deleted successfully"}
-
-@router.get("/display",response_model=list[models.TemperatureRecord])
-async def display_all(request : Request):
-    result = await request.app.mongodb["TemperatureRecord"].find().to_list(None)
-    print(await request.app.mongodb["TemperatureRecord"].count_documents({}))
-    if not result:
-        raise HTTPException(status_code=404, detail="No records found")
-    for item in result:
-        item.pop("_id", None)
-
-    return result
-    
-   
