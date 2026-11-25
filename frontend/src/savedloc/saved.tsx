@@ -15,7 +15,8 @@ type WeatherLocation = {
     coordinates: { lat: number; lon: number };
 };
 type SavedProps = NavProps & GlassCardProps & {
-    setWeatherId: (weatherId: string | null) => void;
+    setCurrentWeatherId: (currentweatherId: string | null) => void;
+    setFiveDayWeatherId: (fiveDayWeatherId: string | null) => void;
 };
 
 type NavProps = {
@@ -25,7 +26,7 @@ type NavProps = {
     setSelectedLocation: (location: WeatherLocation) => void;
 };
 
-export default function Saved({ location, selectedLocation, setSelectedLocation, className = "", style, setWeatherId }: SavedProps) {
+export default function Saved({ location, selectedLocation, setSelectedLocation, className = "", style, setCurrentWeatherId, setFiveDayWeatherId }: SavedProps) {
     const selectLocation = (loc: WeatherLocation) => {
         setSelectedLocation(loc);
     };
@@ -50,12 +51,12 @@ export default function Saved({ location, selectedLocation, setSelectedLocation,
             console.error("Current weather response did not include an ID");
             return;
         }
-        setWeatherId(data._id);
+        setCurrentWeatherId(data._id);
 
     }
 
-     const addfivedays = async (loc: WeatherLocation) => {
-        const response = await fetch("http://localhost:8000/api/v1/5days/insert", {
+    const addfivedays = async (loc: WeatherLocation) => {
+        const response = await fetch("http://localhost:8000/api/v1/5day/insert", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -70,17 +71,20 @@ export default function Saved({ location, selectedLocation, setSelectedLocation,
             return;
         }
 
-        const data: { _id?: string } = await response.json();
-        if (!data._id) {
-            console.error("Current weather response did not include an ID");
+        const data: { id?: string } = await response.json();
+
+        if (!data.id) {
+            console.error("Five-day forecast response did not include an ID");
             return;
         }
-        setWeatherId(data._id);
+
+        setFiveDayWeatherId(data.id);
+       
 
     }
 
     return (<>
-        <GlassCard className="flex flex-col  max-h-55 overflow-auto p-4 ">
+        <GlassCard className="flex flex-col  max-h-60 overflow-auto p-4 ">
             <div className={`${className} w-full`} style={style}>
                 <div className="flex flex-col gap-3 overflow-auto ">
                     <h6 className="">Recently Searched --{">"}</h6>
@@ -95,7 +99,7 @@ export default function Saved({ location, selectedLocation, setSelectedLocation,
                                 </span>
                             </div>
 
-                            <button aria-pressed={selectedLocation?.id === loc.id} onClick={() => {     selectLocation(loc);     addforecast(loc); addfivedays(loc) }} className="rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/25 active:scale-95">
+                            <button aria-pressed={selectedLocation?.id === loc.id} onClick={() => { selectLocation(loc); addforecast(loc); addfivedays(loc) }} className="rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/25 active:scale-95">
                                 Select
                             </button>
                         </div>

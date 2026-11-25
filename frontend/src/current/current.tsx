@@ -17,7 +17,7 @@ type WeatherLocation = {
 
 type CurrentProps = GlassCardProps & {
     selectedLocation: WeatherLocation | null;
-    weatherId: string | null;
+    currentWeatherId: string | null;
 };
 
 type CurrentWeather = {
@@ -32,17 +32,17 @@ type CurrentWeather = {
     wind_speed: number;
 };
 
-export default function Current({ selectedLocation, weatherId }: CurrentProps) {
+export default function Current({ selectedLocation, currentWeatherId }: CurrentProps) {
     const [current, setCurrent] = useState<CurrentWeather | null>(null);
     useEffect(() => {
-        if (!selectedLocation || !weatherId) {
+        if (!selectedLocation || !currentWeatherId) {
             setCurrent(null);
             return;
         }
 
         const fetchCurForecast = async () => {
             const response = await fetch(
-                `http://localhost:8000/api/v1/current/today/display/${weatherId}`
+                `http://localhost:8000/api/v1/current/today/display/${currentWeatherId}`
             );
             if (!response.ok) {
                 console.error("Failed to fetch weather:", response.status);
@@ -59,7 +59,7 @@ export default function Current({ selectedLocation, weatherId }: CurrentProps) {
 
         return () => clearInterval(interval);
 
-    }, [selectedLocation, weatherId]);
+    }, [selectedLocation, currentWeatherId]);
     return (
         <>
             {current && (

@@ -104,6 +104,7 @@ async def list_current_weather(request: Request):
     docs = await request.app.mongodb["FiveDayForecast"].find().to_list(None)
     for d in docs:
         d["_id"] = str(d["_id"])
+        d["id"] = str(d.pop("_id"))
         d["location_id"] = str(d["location_id"])
     return docs
 
@@ -120,6 +121,7 @@ async def get_current_weather(weather_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Record not found")
 
     doc["_id"] = str(doc["_id"])
+    doc["id"] = str(doc.pop("_id"))
     doc["location_id"] = str(doc["location_id"])
     return doc   
 
