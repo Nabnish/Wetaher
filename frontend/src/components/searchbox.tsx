@@ -21,7 +21,7 @@ const InputExampleActionDropdown = () => {
   }
 
   return (
-    <div className="text-white mt-10">
+    <div className="text-white">
       <form onSubmit={addLocation}>
 
         <span aria-hidden='true' className="pr-2 ">⌕</span>
