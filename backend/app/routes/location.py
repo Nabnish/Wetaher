@@ -46,6 +46,7 @@ async def insert_location_user(    request: Request,location: models.Location):
         inserted_location = await request.app.mongodb["location"].find_one({"_id": result.inserted_id})
         count = await request.app.mongodb["location"].count_documents({})
         print("Documents after insert:", count)
+        inserted_location["id"] = str(result.inserted_id)
         return inserted_location
     except DuplicateKeyError:
         raise HTTPException(status_code=409, detail="Location with these coordinates already exists")
