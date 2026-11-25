@@ -10,15 +10,33 @@ from bson import ObjectId
 from bson import ObjectId
 from bson.errors import InvalidId
 from datetime import datetime , timezone
+from collections import Counter, defaultdict
 
 router = APIRouter(prefix="/api/v1/5day",tags=["5day"])
 
 class fivedayWeatherCreate(BaseModel):
     location_id: str
 
+def build_daily(entries: list, tz_offset: int) -> list:
+    days = defaultdict(list)
+    for item in entries:
+        local = datetime.fromtimestamp(item["observed_at"] + tz_offset, tz=timezone.utc)
+        days[local.date().isoformat()].append(item)
 
+    result = []
+    for day, items in sorted(days.items())[:5]:
+        temps = [i["temperature_c"] for i in items]
+        condition = Counter(i["weather_main"] for i in items).most_common(1)[0][0]
+        result.append({
+            "date": day,
+            "weekday": datetime.fromisoformat(day).strftime("%a"),
+            "condition": condition,
+            "high": round(max(temps), 1),
+            "low": round(min(temps), 1),
+        })
+    return result
 
-@router.post("/insert", status_code=201, response_model=models.FiveDayForecast)
+@router.post("/insert", status_code=201, response_model=models.FiveDayForecastOut)
 async def create_current_weather(payload: fivedayWeatherCreate, request: Request):
     try:
         location_oid = ObjectId(payload.location_id)
@@ -29,7 +47,31 @@ async def create_current_weather(payload: fivedayWeatherCreate, request: Request
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
 
-    
+
+    raw = await getweather5days_api(request , location["name"])
+
+
+    forecast = [
+        {
+            "observed_at": item["dt"],
+            "forecast_at": item["dt_txt"],
+            "temperature_c": item["main"]["temp"],
+            "feels_like_c": item["main"]["feels_like"],
+            "temp_min": item["main"]["temp_min"],
+            "temp_max": item["main"]["temp_max"],
+            "pressure": item["main"]["pressure"],
+            "humidity": item["main"]["humidity"],
+            "weather_main": item["weather"][0]["main"],
+            "cloudiness": item["clouds"]["all"],
+            "wind_speed": item["wind"]["speed"],
+            "wind_degree": item["wind"]["deg"],
+            "probability_of_precipitation": item["pop"],
+            "visibility": item["visibility"],
+        }
+        for item in raw["list"]
+    ]
+
+    tz_offset = raw["city"]["timezone"]
     raw = await getweather5days_api(request , location["name"])
 
     doc = {
@@ -42,36 +84,22 @@ async def create_current_weather(payload: fivedayWeatherCreate, request: Request
             "lon": location["coordinates"]["lon"]
         },
     },
-    "forecast": [
-        {
-            "observed_at": item["dt"],
-            "forecast_at": item["dt_txt"],
-            "temperature_c": item["main"]["temp"],
-            "feels_like_c": item["main"]["feels_like"],
-            "temp_min": item["main"]["temp_min"],
-            "temp_max": item["main"]["temp_max"],
-            "pressure": item["main"]["pressure"],
-            "humidity": item["main"]["humidity"],
-            "pressure" : raw["main"]["pressure"],
-            "weather_main": item["weather"][0]["main"],
-        
-            "cloudiness": item["clouds"]["all"],
-            "wind_speed": item["wind"]["speed"],
-            "wind_degree": item["wind"]["deg"],
-            "probability_of_precipitation": item["pop"],
-            "visibility": item["visibility"],
-        }
-        for item in raw["list"]
-    ],
-    "created_at": datetime.now(timezone.utc),
+        "timezone_offset": tz_offset,
+        "days": build_daily(forecast, tz_offset),
+        "forecast": forecast,
+        "created_at": datetime.now(timezone.utc),
+   
+   
+        "created_at": datetime.now(timezone.utc),
 }
     result = await request.app.mongodb["FiveDayForecast"].insert_one(doc)
     doc["_id"] = str(result.inserted_id)
+    doc["id"] = doc.pop("_id")
     doc["location_id"] = str(location_oid)
     return doc
 
 
-@router.get("/display",response_model=list[models.FiveDayForecast])
+@router.get("/display",response_model=list[models.FiveDayForecastOut])
 async def list_current_weather(request: Request):
     docs = await request.app.mongodb["FiveDayForecast"].find().to_list(None)
     for d in docs:
@@ -80,7 +108,7 @@ async def list_current_weather(request: Request):
     return docs
 
 
-@router.get("/display/{weather_id}",response_model=models.FiveDayForecast)
+@router.get("/display/{weather_id}",response_model=models.FiveDayForecastOut)
 async def get_current_weather(weather_id: str, request: Request):
     try:
         oid = ObjectId(weather_id)

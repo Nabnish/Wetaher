@@ -53,6 +53,32 @@ export default function Saved({ location, selectedLocation, setSelectedLocation,
         setWeatherId(data._id);
 
     }
+
+     const addfivedays = async (loc: WeatherLocation) => {
+        const response = await fetch("http://localhost:8000/api/v1/5days/insert", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                location_id: loc.id,
+            })
+
+        });
+        if (!response.ok) {
+            console.error("Failed to create current weather:", response.status);
+            return;
+        }
+
+        const data: { _id?: string } = await response.json();
+        if (!data._id) {
+            console.error("Current weather response did not include an ID");
+            return;
+        }
+        setWeatherId(data._id);
+
+    }
+
     return (<>
         <GlassCard className="flex flex-col  max-h-55 overflow-auto p-4 ">
             <div className={`${className} w-full`} style={style}>
@@ -69,7 +95,7 @@ export default function Saved({ location, selectedLocation, setSelectedLocation,
                                 </span>
                             </div>
 
-                            <button aria-pressed={selectedLocation?.id === loc.id} onClick={() => {     selectLocation(loc);     addforecast(loc); }} className="rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/25 active:scale-95">
+                            <button aria-pressed={selectedLocation?.id === loc.id} onClick={() => {     selectLocation(loc);     addforecast(loc); addfivedays(loc) }} className="rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/25 active:scale-95">
                                 Select
                             </button>
                         </div>

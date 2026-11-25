@@ -66,7 +66,6 @@ class ForecastEntry(BaseModel):
     feels_like_c: float
     temp_min: float
     temp_max: float
-    pressure: int
     humidity: int
     pressure: int
     weather_main: str
@@ -78,10 +77,23 @@ class ForecastEntry(BaseModel):
     visibility: int
 
 
-class FiveDayForecast(BaseModel):
+class DailySummary(BaseModel):
+    date: str
+    weekday: str
+    condition: str
+    high: float
+    low: float
+
+class LocationSummary(BaseModel):
+    name: Optional[str] = None
+    country: Optional[str] = None
+    coordinates: Coordinates
+
+class FiveDayForecastOut(BaseModel):
+    id: str
     location_id: str
-    location: ForecastLocation
-    forecast: List[ForecastEntry]
+    location: LocationSummary
+    days: List[DailySummary]
     created_at: datetime
 
 
