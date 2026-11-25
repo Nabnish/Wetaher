@@ -49,7 +49,7 @@ async def create_current_weather(payload: CurrentWeatherCreate, request: Request
         "temperature_c": raw["main"]["temp"],
         "feels_like_c": raw["main"]["feels_like"],
         "humidity": raw["main"]["humidity"],
-        "condition": raw["weather"][0]["description"],
+        "pressure" : raw["main"]["pressure"],
         "wind_speed": raw["wind"]["speed"],
         "created_at": datetime.now(timezone.utc),
     }

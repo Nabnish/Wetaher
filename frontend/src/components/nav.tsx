@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import InputExampleActionDropdown from "./searchbox.tsx";
 import { ListItem, ListIcon, ListContent } from 'semantic-ui-react'
 type WeatherLocation = {
-    id: number;
+    id: string;
     name: string;
     state: string;
     country: string;

@@ -52,7 +52,7 @@ async def create_current_weather(payload: fivedayWeatherCreate, request: Request
             "temp_max": item["main"]["temp_max"],
             "pressure": item["main"]["pressure"],
             "humidity": item["main"]["humidity"],
-            "condition": item["weather"][0]["description"],
+            "pressure" : raw["main"]["pressure"],
             "weather_main": item["weather"][0]["main"],
         
             "cloudiness": item["clouds"]["all"],

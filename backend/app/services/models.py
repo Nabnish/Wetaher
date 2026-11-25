@@ -44,7 +44,7 @@ class CurrentWeather(BaseModel):
     temperature_c: float
     feels_like_c: float
     humidity: int
-    condition: str
+    pressure: int 
     wind_speed: float
     created_at: datetime
 
@@ -68,7 +68,7 @@ class ForecastEntry(BaseModel):
     temp_max: float
     pressure: int
     humidity: int
-    condition: str
+    pressure: int
     weather_main: str
    
     cloudiness: int

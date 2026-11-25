@@ -60,6 +60,9 @@ async def display_locations(request : Request):
     print(await request.app.mongodb["location"].count_documents({}))
     if result is None:
         raise HTTPException(status_code=404, detail="Location not found")
+    for location in result:
+        location["id"] = str(location["_id"])
+
     return result
 
 @router.get("/display/{city}",response_model=models.Location)
