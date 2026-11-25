@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 import os
 from .routes import api, location, current , fiveday , history , export
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -34,6 +36,13 @@ async def startup_db_client(app):
     print("MongoDB connected successfully!")
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def main():
