@@ -18,9 +18,36 @@ class HistoryCreate(BaseModel):
     start: date
     end: date
 
+def format_history(doc):
+    daily = {}
+
+    for reading in doc["readings"]:
+        day = reading["time"][:10]
+        temp = reading["temperature"]
+
+        if day not in daily:
+            daily[day] = {
+                "date": day,
+                "min_c": temp,
+                "max_c": temp
+            }
+        else:
+            daily[day]["min_c"] = min(daily[day]["min_c"], temp)
+            daily[day]["max_c"] = max(daily[day]["max_c"], temp)
+
+    return {
+        "id": str(doc["_id"]),
+        "location_id": str(doc["location_id"]),
+        "name": doc["location"]["name"],
+        "country": doc["location"]["country"],
+        "start_date": doc["start_date"],
+        "end_date": doc["end_date"],
+        "days": list(daily.values()),
+        "created_at": doc["created_at"]
+    }
    
  
-@router.post("/insert", status_code=201, response_model=models.TemperatureRecord)
+@router.post("/insert", status_code=201, response_model=models.TemperatureRecordOut)
 async def create_current_weather(payload: HistoryCreate, request: Request):
     try:
         location_oid = ObjectId(payload.location_id)
@@ -73,12 +100,11 @@ async def create_current_weather(payload: HistoryCreate, request: Request):
 
 
     result = await request.app.mongodb["TemperatureRecord"].insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
-    doc["location_id"] = str(location_oid)
-    return doc
+    doc["_id"] = result.inserted_id
+    return format_history(doc)
 
 
-@router.get("/display",response_model=list[models.TemperatureRecord])
+@router.get("/display",response_model=list[models.TemperatureRecordOut])
 async def list_current_weather(request: Request):
     docs = await request.app.mongodb["TemperatureRecord"].find().to_list(None)
     for d in docs:
@@ -87,7 +113,7 @@ async def list_current_weather(request: Request):
     return docs
 
 
-@router.get("/display/{weather_id}",response_model=models.TemperatureRecord)
+@router.get("/display/{weather_id}",response_model=models.TemperatureRecordOut)
 async def get_current_weather(weather_id: str, request: Request):
     try:
         oid = ObjectId(weather_id)
@@ -100,7 +126,7 @@ async def get_current_weather(weather_id: str, request: Request):
 
     doc["_id"] = str(doc["_id"])
     doc["location_id"] = str(doc["location_id"])
-    return doc   
+    return format_history(doc) 
 
 @router.delete("/delete/{weather_id}",response_model=dict)
 async def delete_forecast(request: Request, weather_id : str):

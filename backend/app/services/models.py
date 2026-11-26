@@ -115,5 +115,19 @@ class TemperatureRecord(BaseModel):
     end_date: str
     readings: List[TemperatureReading]
     created_at: datetime
+class DailyTemperature(BaseModel):
+    date: str
+    min_c: float | None
+    max_c: float | None
 
+
+class TemperatureRecordOut(BaseModel):
+    id: str
+    location_id: str
+    name: str
+    country: str
+    start_date: str
+    end_date: str
+    days: List[DailyTemperature]
+    created_at: datetime
 
