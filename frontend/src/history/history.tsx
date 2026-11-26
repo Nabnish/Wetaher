@@ -50,8 +50,33 @@ const now = today(getLocalTimeZone());
 export default function History({ selectedLocation, historyId, setHistoryId }: CurrentProps) {
     const [history, setHistory] = useState<HistoryRecord | null>(null);
     const [value, setValue] = useState<{ start: DateValue; end: DateValue } | null>({ start: now.subtract({ days: 7 }), end: now, });
+    const [error, setError] = useState("");
 
     const addhistory = async (loc: WeatherLocation) => {
+        setError("");
+        if (!value) {
+            setError("Please select a date range");
+            return;
+        }
+        if (value.start.compare(value.end) > 0) {
+            setError("Start date must be before end date");
+            return;
+        }
+        const days = Math.round(
+            (value.end.toDate("UTC").getTime() - value.start.toDate("UTC").getTime()) /
+            (24 * 60 * 60 * 1000)
+        );
+
+        if (days >= 366) {
+            setError("Date range cannot exceed 365 days");
+            return;
+        }
+
+        if (value.end.compare(today(getLocalTimeZone())) >= 0) {
+            setError("Future dates are not allowed");
+            return;
+        }
+
         const response = await fetch("http://localhost:8000/api/v1/history/insert", {
             method: "POST",
             headers: {
@@ -110,7 +135,14 @@ export default function History({ selectedLocation, historyId, setHistoryId }: C
     return (
         <GlassCard>
             <div className="flex flex-col gap-6 p-6  text-white">
+                <div className="pb-1 -mb-5 -mt-4">
 
+                    {error && (
+                        <p className="text-red-400 text-sm mt-2" role="alert">
+                            {error}
+                        </p>
+                    )}
+                </div>
                 <form className="flex flex-col gap-3 sm:flex-row sm:items-center" onSubmit={(event) => { event.preventDefault(); if (selectedLocation) void addhistory(selectedLocation); }}>
                     <div className="flex-1">
                         <DateRangePickerControlledDemo value={value} setValue={setValue} />
@@ -119,14 +151,15 @@ export default function History({ selectedLocation, historyId, setHistoryId }: C
                     <button type="submit" disabled={!selectedLocation || !value} className="rounded-xl bg-white/90 px-6 py-2.5 text-sm font-semibold text-slate-900   disabled:cursor-not-allowed disabled:opacity-40">
                         Submit
                     </button>
+
                 </form>
 
                 {history && (
                     <>
-                        
-                     
 
-                        <div className="grid max-h-50 grid-cols-2 gap-3 overflow-y-auto pr-1  sm:grid-cols-2 md:grid-cols-3">
+
+
+                        <div className={`grid ${!error ? "max-h-55" : "max-h-50"} grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-2 md:grid-cols-3`}>
                             {history.days.map((day) => (
                                 <div
                                     key={day.date}

@@ -56,7 +56,7 @@ async def create_current_weather(payload: HistoryCreate, request: Request):
         raise HTTPException(status_code=400, detail="Invalid location id")
     if payload.start>payload.end :
         raise HTTPException(status_code=400,detail="start_date must be before end_date")
-    if (payload.start-payload.end).days >= 366:
+    if (payload.end-payload.start).days >= 366:
         raise HTTPException(status_code=400,detail="Range cannot exceed 365 days")
     if payload.end>date.today():
         raise HTTPException(status_code=400,detail="only covers past dates")
