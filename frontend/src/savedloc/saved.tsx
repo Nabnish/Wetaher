@@ -17,6 +17,7 @@ type WeatherLocation = {
 type SavedProps = NavProps & GlassCardProps & {
     setCurrentWeatherId: (currentweatherId: string | null) => void;
     setFiveDayWeatherId: (fiveDayWeatherId: string | null) => void;
+
 };
 
 type NavProps = {
