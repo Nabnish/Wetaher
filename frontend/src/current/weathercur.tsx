@@ -22,7 +22,7 @@ export default function CurrentWeather({
 }: WeatherProps) {
 
   const toCelsius = (kelvin: number) =>
-    Math.round(kelvin );
+    Math.round(kelvin);
 
   return (
     <GlassCard className="w-full max-w-md p-6">
@@ -36,7 +36,7 @@ export default function CurrentWeather({
           </p>
         </div>
 
-        <span className="text-4xl"></span>
+       
       </div>
 
       <div className="mt-6 flex items-center gap-4">

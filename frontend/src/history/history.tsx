@@ -97,48 +97,40 @@ export default function History({ selectedLocation, historyId, setHistoryId }: C
 
             const data = await response.json();
 
-            console.log("POST response:", data);
-            console.log("Returned ID:", data._id);
             setHistory(data);
         };
 
         fetchCurForecast();
 
-        const interval = setInterval(fetchCurForecast, 100000);
+        const interval = setInterval(fetchCurForecast, 1000);
 
         return () => clearInterval(interval);
 
     }, [selectedLocation, historyId]);
     return (
         <GlassCard>
-            <div className="flex flex-col gap-6 p-6 text-white">
+            <div className="flex flex-col gap-6 p-6  text-white">
 
                 <form className="flex flex-col gap-3 sm:flex-row sm:items-center" onSubmit={(event) => { event.preventDefault(); if (selectedLocation) void addhistory(selectedLocation); }}>
                     <div className="flex-1">
                         <DateRangePickerControlledDemo value={value} setValue={setValue} />
                     </div>
 
-                    <button type="submit" disabled={!selectedLocation || !value} className="rounded-xl bg-white/90 px-6 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40">
+                    <button type="submit" disabled={!selectedLocation || !value} className="rounded-xl bg-white/90 px-6 py-2.5 text-sm font-semibold text-slate-900   disabled:cursor-not-allowed disabled:opacity-40">
                         Submit
                     </button>
                 </form>
 
                 {history && (
                     <>
-                        <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+                        
+                     
 
-
-                            <div className="text-right">
-                                <p className="text-sm text-white/70">{history.start_date}</p>
-                                <p className="text-sm text-white/50">to {history.end_date}</p>
-                            </div>
-                        </div>
-
-                        <div className="grid max-h-90 grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 md:grid-cols-4">
+                        <div className="grid max-h-50 grid-cols-2 gap-3 overflow-y-auto pr-1  sm:grid-cols-2 md:grid-cols-3">
                             {history.days.map((day) => (
                                 <div
                                     key={day.date}
-                                    className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md transition hover:bg-white/10"
+                                    className="rounded-2xl border border-white/10 p-4 backdrop-blur-md "
                                 >
                                     <p className="text-sm font-medium text-white/60">
                                         {new Date(day.date + "T00:00:00").toLocaleDateString("en-US", {
@@ -153,7 +145,7 @@ export default function History({ selectedLocation, historyId, setHistoryId }: C
                                             <p className="text-2xl font-semibold">
                                                 {day.max_c !== null ? `${Math.round(day.max_c)}°` : "--"}
                                             </p>
-                                            <p className="text-xs text-white/50">High</p>
+                                            <p className="text-xs  text-white/50">High</p>
                                         </div>
 
                                         <div className="text-right">
