@@ -4,6 +4,7 @@ import Saved from "./savedloc/saved";
 import Current from "./current/current";
 import FiveDays from "./fivedays/fivedays";
 import History from "./history/history";
+import Export from "./export/export";
 type WeatherLocation = {
     id: string;
     name: string;
@@ -24,6 +25,7 @@ function App() {
     <main className="min-h-dvh w-full">
       <div className="flex min-h-dvh w-full flex-col bg-[url('/img/download.jpg')] bg-cover bg-center">
         <Nav location={location} setLocation={setLocation} selectedLocation={selectedLocation} setSelectedLocation = {setSelectedLocation}/>
+        <Export currentWeatherId={currentWeatherId} historyId={historyId} fiveDayWeatherId={fiveDayWeatherId}/>
         <div className="grid flex-1 grid-cols-2   place-content-center gap-4 pt-30 mx-auto ">
 
           <Current className="col-span-2" selectedLocation={selectedLocation} currentWeatherId={currentWeatherId}/>

@@ -9,6 +9,7 @@ from .api import getweather_api
 from bson import ObjectId
 from fastapi.responses import JSONResponse
 from bson import json_util
+from fastapi.responses import Response
 
 router = APIRouter(prefix="/api/v1/export",tags=["export"])
 
@@ -25,12 +26,14 @@ async def history_export(request : Request, record_id : str):
         raise HTTPException(status_code=404, detail="Record not found")
 
     record.pop("_id", None)
-
-    return JSONResponse(
-        content=json_util.loads(json_util.dumps(record)),
-        headers={
-            "Content-Disposition": f'attachment; filename="weather_temperatures_{record_id}.json"'
-        }
+    
+    
+    return Response(
+    content=json_util.dumps(record),
+    media_type="application/json",
+    headers={
+        "Content-Disposition": f'attachment; filename="weather_current_{record_id}.json"'
+    }
     )
 
 
@@ -49,12 +52,16 @@ async def current_export(request : Request, record_id : str):
 
     record.pop("_id", None)
 
-    return JSONResponse(
-        content=json_util.loads(json_util.dumps(record)),
-        headers={
-            "Content-Disposition": f'attachment; filename="weather_current_{record_id}.json"'
-        }
-    )
+        
+    return Response(
+       content=json_util.dumps(record),
+       media_type="application/json",
+       headers={
+           "Content-Disposition": f'attachment; filename="weather_current_{record_id}.json"'
+       }
+       )
+   
+
 
 
 @router.get("/5dayforecast/{record_id}")
@@ -70,10 +77,11 @@ async def fiveday_export(request : Request, record_id : str):
         raise HTTPException(status_code=404, detail="Record not found")
 
     record.pop("_id", None)
-
-    return JSONResponse(
-        content=json_util.loads(json_util.dumps(record)),
-        headers={
-            "Content-Disposition": f'attachment; filename="weather_5dayforecast_{record_id}.json"'
-        }
+          
+    return Response(
+          content=json_util.dumps(record),
+          media_type="application/json",
+          headers={
+              "Content-Disposition": f'attachment; filename="weather_current_{record_id}.json"'
+          }
     )
