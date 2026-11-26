@@ -29,7 +29,7 @@ function App() {
           <Current className="col-span-2" selectedLocation={selectedLocation} currentWeatherId={currentWeatherId}/>
           <History className="col-span-2"  selectedLocation={selectedLocation} historyId={historyId} setHistoryId={setHistoryId} />
           <FiveDays className="" selectedLocation={selectedLocation} fiveDayWeatherId={fiveDayWeatherId} />
-          <Saved className="col-span-2" location={location} setLocation={setLocation} selectedLocation={selectedLocation} setSelectedLocation = {setSelectedLocation} setCurrentWeatherId={setCurrentWeatherId} setFiveDayWeatherId = {setFiveDayWeatherId}/>
+          <Saved className="col-span-2" historyId={historyId} setHistoryId={setHistoryId} location={location} setLocation={setLocation} selectedLocation={selectedLocation} fiveDayWeatherId={fiveDayWeatherId} setSelectedLocation = {setSelectedLocation} setCurrentWeatherId={setCurrentWeatherId} currentWeatherId = {currentWeatherId} setFiveDayWeatherId = {setFiveDayWeatherId}/>
           
         </div>
       </div>

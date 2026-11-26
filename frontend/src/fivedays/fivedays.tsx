@@ -74,8 +74,9 @@ export default function FiveDays({ selectedLocation, fiveDayWeatherId }: Current
     }, [selectedLocation, fiveDayWeatherId]);
     return (
         <>
+             {selectedLocation != null &&
             <GlassCard className=" overflow-hidden p-2">
-                <h6 className="p-2 ">Next Five Days</h6>
+                 <h6 className="p-2 ">Next Five Days</h6>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                     {five?.days.map((day) => (
                         <GlassCard key={day.date} className="flex min-w-20 flex-col items-center gap-3 pt-3 pb-4 ">
@@ -100,6 +101,7 @@ export default function FiveDays({ selectedLocation, fiveDayWeatherId }: Current
                     ))}
                 </div>
             </GlassCard>
+    }
         </>
     );
 }

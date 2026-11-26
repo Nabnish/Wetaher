@@ -7,6 +7,8 @@ from ..services import models
 import json
 from .api import geolocation_api
 from pymongo.errors import DuplicateKeyError
+from bson.errors import InvalidId
+
 
 
 router = APIRouter(prefix="/api/v1/location",tags=["location"])
@@ -73,9 +75,13 @@ async def display_city(request: Request, city: str):
     return result
 
 
-@router.delete("/delete/{city}",response_model=dict)
-async def delete_location(request: Request, city: str):
-    result =  await request.app.mongodb["location"].delete_one({"name":city.title()})
+@router.delete("/delete/{location_id}",response_model=dict)
+async def delete_location(request: Request, location_id: str):
+    try:
+        oid = ObjectId(location_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid id")
+    result =  await request.app.mongodb["location"].delete_one({"_id":oid})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="not found")
     return {"message": "deleted successfully"}
