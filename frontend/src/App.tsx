@@ -5,6 +5,7 @@ import Current from "./current/current";
 import FiveDays from "./fivedays/fivedays";
 import History from "./history/history";
 import Export from "./export/export";
+import Info from "./components/info";
 type WeatherLocation = {
     id: string;
     name: string;
@@ -42,6 +43,7 @@ function App() {
           
         </div>
       </div>
+        <Info/>
 
     </main>
   )
