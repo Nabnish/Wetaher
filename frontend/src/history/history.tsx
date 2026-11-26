@@ -59,19 +59,23 @@ export default function History({ selectedLocation, historyId, setHistoryId }: C
             },
             body: JSON.stringify({
                 location_id: loc.id,
+                start: value?.start.toString(),
+                end: value?.end.toString(),
             })
 
         });
         if (!response.ok) {
-            console.error("Failed to create current weather:", response.status);
+            const error = await response.json();
+            console.error("Status:", response.status);
+            console.error("Backend detail:", error.detail);
             return;
         }
 
-        const data: { _id?: string } = await response.json();
-        if (!data._id) {
-            console.error("Current weather response did not include an ID");
-            return;
-        }
+        const data = await response.json();
+
+        console.log("FULL RESPONSE:", data);
+        console.log("ID:", data._id);
+        console.log("ID field:", data.id);
         setHistoryId(data._id);
     };
 
@@ -92,6 +96,9 @@ export default function History({ selectedLocation, historyId, setHistoryId }: C
             }
 
             const data = await response.json();
+
+            console.log("POST response:", data);
+            console.log("Returned ID:", data._id);
             setHistory(data);
         };
 
@@ -106,7 +113,7 @@ export default function History({ selectedLocation, historyId, setHistoryId }: C
         <GlassCard>
             <div className="flex flex-col gap-6 p-6 text-white">
 
-                <form className="flex flex-col gap-3 sm:flex-row sm:items-center" onSubmit={(event) => { event.preventDefault();  if (selectedLocation) void addhistory(selectedLocation); }}>
+                <form className="flex flex-col gap-3 sm:flex-row sm:items-center" onSubmit={(event) => { event.preventDefault(); if (selectedLocation) void addhistory(selectedLocation); }}>
                     <div className="flex-1">
                         <DateRangePickerControlledDemo value={value} setValue={setValue} />
                     </div>
@@ -119,7 +126,7 @@ export default function History({ selectedLocation, historyId, setHistoryId }: C
                 {history && (
                     <>
                         <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md">
-                            
+
 
                             <div className="text-right">
                                 <p className="text-sm text-white/70">{history.start_date}</p>

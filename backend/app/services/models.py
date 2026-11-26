@@ -5,6 +5,7 @@ from datetime import datetime, timezone, date
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from enum import Enum
+from pydantic import BaseModel, Field, ConfigDict
 
 class Coordinates(BaseModel):
     lat: float
@@ -122,7 +123,8 @@ class DailyTemperature(BaseModel):
 
 
 class TemperatureRecordOut(BaseModel):
-    id: str
+    model_config = ConfigDict(populate_by_name=True)
+    id: str = Field(alias="_id")
     location_id: str
     name: str
     country: str

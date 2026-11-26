@@ -36,7 +36,8 @@ def format_history(doc):
             daily[day]["max_c"] = max(daily[day]["max_c"], temp)
 
     return {
-        "id": str(doc["_id"]),
+        "_id": str(doc["_id"]),
+        
         "location_id": str(doc["location_id"]),
         "name": doc["location"]["name"],
         "country": doc["location"]["country"],
@@ -107,10 +108,7 @@ async def create_current_weather(payload: HistoryCreate, request: Request):
 @router.get("/display",response_model=list[models.TemperatureRecordOut])
 async def list_current_weather(request: Request):
     docs = await request.app.mongodb["TemperatureRecord"].find().to_list(None)
-    for d in docs:
-        d["_id"] = str(d["_id"])
-        d["location_id"] = str(d["location_id"])
-    return docs
+    return [format_history(doc) for doc in docs]
 
 
 @router.get("/display/{weather_id}",response_model=models.TemperatureRecordOut)
